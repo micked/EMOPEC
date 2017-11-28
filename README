@@ -1,0 +1,96 @@
+
+
+
+                                 ~ ~ EMOPEC ~ ~
+
+            Empirical Model and Oligos for Protein Expression Changes
+
+
+
+  > What is EMOPEC?
+
+    EMOPEC is a tool for suggesting changes to DNA sequences to specifically
+    alter the expression of proteins. EMOPEC works by replacing the ribosome
+    binding site of target proteins.
+
+    An online version available for anyone to use is located at:
+    http://emopec.biosustain.dtu.dk/
+
+
+  > Can I cite it?
+
+    Yes, please and thank you. The paper you should cite is:
+
+    Mads T. Bonde, Margit Pedersen, Michael S. Klausen, Sheila I. Jensen, Tune
+    Wulff, Scott Harrison, Alex T. Nielsen, Markus J. Herrgård and Morten O.A.
+    Sommer, A novel algorithm based on the comprehensive characterization of the
+    Shine-Dalgarno sequence for improved predictable tuning of protein
+    expression, Nature Methods (2015)
+
+
+  > Dependencies?
+
+    EMOPEC is a pure Python library which depends on the ViennaRNA package
+    version 2.X. EMOPEC can either use command-line tools or the much faster
+    RNAlib python wrappers. Whatever is available will automatically be
+    detected.
+
+    See http://www.tbi.univie.ac.at/RNA/ for installation instructions.
+
+    To run the web-interface to EMOPEC locally, the Flask microframework is
+    needed. See http://flask.pocoo.org/ for details, but for most systems:
+
+        pip install Flask
+
+    should suffice.
+
+
+  > Installation?
+
+    Choose any:
+
+        1) $ pip install git+https://github.com/micked/EMOPEC.git
+
+        2) $ git clone https://github.com/micked/EMOPEC.git
+           $ cd EMOPEC
+           $ python setup.py install
+
+
+  > How do I use it?
+
+    In Python:
+
+        >>> import emopec
+        >>> emopec.get_expression('AGGAGA')
+        9.41932973140501
+
+        >>> my_leader = 'ATACAAGTCGCTTAAGGCTTGCCAACGAACCATTGCCGCC'
+        >>> upstream, sd_seq, spacing, expr = emopec.predict_spacing(my_leader)
+        >>> (upstream, sd_seq, spacing)
+        ('ATACAAGTCGCTTAAGGCTTGCCAAC', 'GAACCA', 'TTGCCGCC')
+        >>> expr
+        1.6219460336049762
+        >>> emopec.get_expression(sd_seq, sd_dist=len(spacing))
+        1.6219460336049762
+
+        >>> my_cds = 'ATGAAGTTTATCATTAAATTGTTCCCGGAAATCACCATCAAAAGCC'
+        >>> lib = emopec.make_library(upstream, sd_seq, spacing, my_cds)
+        >>> for vals in lib:
+        ...     print('{}: {:.4f} {:.2f}kcal/mol {:.0%}'.format(*vals))
+        AGACAT: 2.6361 0.30kcal/mol 40%
+        TAGAGT: 3.6126 0.70kcal/mol 55%
+        CGAGTG: 4.6015 2.50kcal/mol 70%
+        AGAGTA: 5.6119 0.00kcal/mol 86%
+        AGGAGT: 6.3893 1.20kcal/mol 98%
+
+    To run the web interface, run:
+
+        $ python emopec/web.py
+
+    and go to localhost:5000 in your browser.
+
+
+  > Can I share it?
+
+    Not at the moment, since we are currently in the process of discussing which
+    license to use for the code.

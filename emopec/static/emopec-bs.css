@@ -1,0 +1,66 @@
+/* Customize container */
+@media (min-width: 968px) {
+  .container {
+    max-width: 930px;
+  }
+}
+
+.masterbanner {
+    display: block;
+    height: 100px;
+}
+
+.masterbanner span{
+    display: none;
+}
+
+#emopecbanner {
+    background: url('emopec_banner.png') no-repeat;
+}
+
+#dtubanner {
+    background: url('cfbdtu_banner.png') right top no-repeat;
+}
+
+#runform {
+    margin: 50px 0 75px 0;
+}
+
+#force_spacing, #nlib {
+    width: 4em;
+}
+
+.sequence{
+    font-family: monospace;
+    font-weight: normal;
+}
+
+tbody td.sequence {
+    font-size: 13px;
+}
+
+.showliblink {
+    float: right;
+}
+
+.shine-dalgarno { color: #990000; }
+.pct-value      { color: #4977b5; }
+.ddG-value      { color: #aaa; }
+.start-codon    { color: #99cc33; }
+
+table.librarytable {
+    width: 100%;
+    margin-bottom: 1px;
+}
+
+table.librarytable .sequence, table.librarytable .pct-value{
+    padding-right: 1em;
+}
+
+th.head-collapsed {
+    border-bottom: 0!important;
+}
+
+.text-sm {
+    font-size: small;
+}

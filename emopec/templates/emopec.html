@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{%block title%}EMOPEC{%endblock%}
+
+
+{%block container%}
+<div ng-app="EMOPEC" ng-controller="EmopecCtrl">
+
+<div class="row">
+  <div class="col-sm-7 col-xs-12">
+    <h1 id="emopecbanner" class="masterbanner"><span>EMOPEC</span></h1>
+  </div>
+  <div class="col-sm-5 hidden-xs">
+    <h3 id="dtubanner" class="masterbanner"><span>DTU Biosustain</span></h3>
+  </div>
+</div>
+
+
+<div id="flasher">
+    <alert ng-repeat="alert in alerts" type="{[ alert.type ]}" close="alerts.splice($index, 1)">{[ alert.msg ]}</alert>
+</div>
+
+<form class="form-horizontal" role="form" id="runform">
+
+    <div class="form-group">
+        <div class="col-sm-6" ng-class="{'has-error': invalidSeq(leaderSeq)}">
+            <label for="pre_sequence">Pre-sequence:</label>
+            <input type="text" class="form-control" ng-model="leaderSeq" id="pre_sequence"
+                placeholder="TGCTGTATTTTTCCCTATACAAGTCGCTTAAGGCTTGCCAACGAACCATTGCCGCC">
+        </div>
+
+        <div class="clearfix visible-xs-block" style="height: 10px"></div>
+
+        <div class="col-sm-6" ng-class="{'has-error': invalidSeq(cdsSeq)}">
+            <label for="coding_sequence">Coding sequence:</label>
+            <input type="text" class="form-control" ng-model="cdsSeq" id="coding_sequence"
+            placeholder="ATGAAGTTTATCATTAAATTGTTCCCGGAAATCACCATCAAAAGCCAA">
+        </div>
+    </div>
+
+    <div class="form-group form-group-sm">
+        <div class="col-sm-6" ng-class="{'has-error': invalidSeq(leaderSeq)}">
+            <label for="wobble_sequence" ng-click="showWobble = !showWobble">
+              <span class="glyphicon glyphicon-chevron-right" ng-show="!showWobble" aria-hidden="true"></span>
+              <span class="glyphicon glyphicon-chevron-down" ng-show="showWobble" aria-hidden="true"></span>
+              Constraints:
+            </label>
+            <span class="text-muted text-sm">(click to {[ showWobble ? 'disable' : 'expand']})</span>
+            <input type="text" class="form-control" ng-model="wobbleSeq" id="wobble_sequence"
+                placeholder="NNNNNNNNNNVRRKWNNNNNNNN" ng-show="showWobble">
+        </div>
+    </div>
+
+    <div class="form-group form-group-sm">
+        <div class="col-sm-1 col-xs-3">
+            <label class="control-label">Target</label>
+        </div>
+        <div class="col-sm-5 col-xs-9">
+
+            <div class="btn-group btn-group-sm" data-toggle="buttons">
+                <label class="btn btn-primary" ng-model="libTarget" btn-radio="'up'">
+                    <span class="glyphicon glyphicon-arrow-up"></span> Up
+                </label>
+                <label class="btn btn-primary" ng-model="libTarget" btn-radio="'both'">Both</label>
+                <label class="btn btn-primary" ng-model="libTarget" btn-radio="'down'">
+                    Down <span class="glyphicon glyphicon-arrow-down"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="clearfix visible-xs-block" style="height: 10px; clear:both"></div>
+
+        <div class="col-sm-1 col-xs-3">
+            <label class="control-label">Spacing</label>
+        </div>
+        <div class="col-sm-5 col-xs-9">
+            <div class="input-group" ng-class="{'has-error': invalidInt(libManualSpacing)}">
+                <div class="input-group-btn" data-toggle="buttons" id="auto-spacing-group">
+                    <label class="btn btn-sm btn-primary" ng-model="libSpacing" btn-radio="'auto'">Calculate</label>
+                    <label class="btn btn-sm btn-primary" ng-model="libSpacing" btn-radio="'set'">
+                        Set <span class="glyphicon glyphicon-chevron-right"></span>
+                    </label>
+                </div>
+                <input type="text" class="form-control input-sm" id="force_spacing"
+                    ng-model="libManualSpacing" ng-disabled="libSpacing != 'set'">
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group form-group-sm">
+        <div class="col-sm-1 col-xs-3">
+            <label class="control-label">Size</label>
+        </div>
+        <div class="col-sm-2 col-xs-9" ng-class="{'has-error': invalidInt(libSize)}">
+            <input type="text" class="form-control" ng-model="libSize" id="nlib">
+        </div>
+    </div>
+
+    <div class="form-group form-group-sm">
+        <div class="col-sm-12">
+            <button id="run_emorbs" type="button" class="btn btn-success"
+                ng-click="runEMOPEC()" ng-disabled="invalidInput() || running">
+                    Run
+                <img src="{{ url_for('static', filename='al.gif') }}" ng-show="running" />
+            </button>
+            <button id="clear_form" type="button" class="btn btn-danger" ng-click="resetForm()">Reset</button>
+        </div>
+    </div>
+</form>
+
+
+<h2>Results</h2>
+<p id="noresults" ng-show="!results.length">No results yet..</p>
+<div id="resultslist">
+  <div ng-repeat="r in results" class="result_container">
+    <div class="table-responsive">
+      <table class="librarytable table table-condensed">
+        <thead>
+          <tr>
+            <th class="sequence" ng-class="{'head-collapsed': r.isCollapsed}">
+              {[ r.upstream.substr(10) ]}<span class="shine-dalgarno">{[ r.sd ]}</span>{[ r.spacing ]}&nbsp;<span class="start-codon">{[ r.cds.substr(0, 3) ]}</span>{[ r.cds.substr(3, 17) ]}&nbsp;<span class="pct-value">({[ (r.expression_percent * 100).toFixed(1) ]}%)</span>
+            </th>
+            <th colspan="2" ng-class="{'head-collapsed': r.isCollapsed}" style="min-width: 155px;">
+              <div class="btn-group btn-group-xs pull-right" role="group">
+                <button type="button" class="btn btn-default" ng-click="r.isCollapsed = !r.isCollapsed">
+                  <span class="glyphicon glyphicon-chevron-left" aria-hidden="true" ng-show="r.isCollapsed"></span>
+                  <span class="glyphicon glyphicon-chevron-down" aria-hidden="true" ng-show="!r.isCollapsed"></span>
+                  Show Library
+                </button>
+                <button type="button" class="btn btn-default" ng-click="results.splice($index, 1)">
+                  <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                </button>
+              </div>
+            </th>
+          </tr>
+        </thead>
+        <tbody ng-hide="r.isCollapsed">
+          <tr ng-repeat="oligo in r.library">
+            <td class="sequence">{[ oligo[1].substr(0, 42) ]}<span class="shine-dalgarno">{[ oligo[1].substr(42, 6) ]}</span>{[ oligo[1].substr(48) ]}</td>
+            <td class="pct-value">{[ (oligo[2] * 100).toFixed(1) ]}%</td>
+            <td class="ddG-value">{[ oligo[3].toFixed(1) ]}&nbsp;kcal/mol</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<h2>Options</h2>
+<dl class="dl-horizontal">
+    <dt>Target</dt>
+    <dd>Whether the library is up- or down-regulating or both.</dd>
+
+    <dt>Spacing</dt>
+    <dd>How many nucleotides between start codon and Shine-Dalgarno sequence.</dd>
+
+    <dt>Size</dt>
+    <dd>Number of oligos to generate.</dd>
+
+    <dt>Constraints</dt>
+    <dd>
+      Use IUPAC degenerate base symbols (A,T, .. N) to put constraints on the designed library.
+      The constraints sequence will be right-aligned to the initiation codon, it is therefore not
+      necessary to input the full length of the leader sequence.
+    </dd>
+</dl>
+
+<h2>Oligo Libraries</h2>
+<p>
+    EMOPEC can be used to create libraries of oligos for recombineering.
+    Enter a library size, and select the library type. <i>"both"</i> will ignore
+    wt sequence expression and select a library from minimal expression to maximum
+    expression. <i>"up"</i> or <i>"down"</i> will create a library starting from
+    predicted wt expression level and target maximum or minimum expression levels.
+    All libraries are created in a linear fashion. Click [show library] to show
+    the created library displaying the oligo, predicted expression level and the
+    alteration in secondary structure energy (&Delta;&Delta;G<sub>mRNA</sub>).
+</p>
+
+<h3>Expression values</h3>
+<p>
+    Expression values are normalized as a percentage of the fluorescence of the
+    highest scoring SD sequence in the EMOPEC dataset (AGGAGA).
+</p>
+
+<h3>Notes on spacing</h3>
+<p>
+    The spacing input is based on the number of nucleotides between the
+    Shine-Dalgarno sequence and the start-codon. This spacing will be one
+    nucleotide longer than the spacing used by other tools, such as the RBS
+    Calculator and UTR Designer, which uses the longer <i>ribosome recognition
+    site</i> (RRS) instead of the SD sequence.
+</p>
+
+
+</div>
+{%endblock%}
+
+{% block script %}
+{{ super() }}
+<script src="{{ url_for('static', filename='rbs_calc.js') }}"></script>
+{% endblock %}
